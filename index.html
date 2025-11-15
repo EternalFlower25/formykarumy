@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Para Karumy ✨</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+        
+        body {
+            background: #000;
+            font-family: 'Georgia', serif;
+        }
+        
+        canvas {
+            display: block;
+        }
+        
+        #mensaje {
+            position: absolute;
+            bottom: 80px;
+            width: 100%;
+            text-align: center;
+            color: #fff;
+            font-size: 28px;
+            opacity: 0;
+            text-shadow: 
+                0 0 10px rgba(255, 215, 0, 0.9),
+                0 0 20px rgba(255, 215, 0, 0.7),
+                0 0 30px rgba(255, 215, 0, 0.5),
+                0 0 40px rgba(138, 43, 226, 0.4);
+            font-style: italic;
+            letter-spacing: 3px;
+            transition: opacity 2s ease-in;
+            animation: float 3s ease-in-out infinite;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+        #submensaje {
+            position: absolute;
+            bottom: 50px;
+            width: 100%;
+            text-align: center;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 16px;
+            opacity: 0;
+            letter-spacing: 2px;
+            transition: opacity 2s ease-in 1s;
+        }
+        #messageBox {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(20, 20, 40, 0.85);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 215, 0, 0.4);
+            border-radius: 20px;
+            padding: 40px 60px;
+            max-width: 600px;
+            text-align: center;
+            opacity: 0;
+            box-shadow: 
+                0 0 30px rgba(255, 215, 0, 0.3),
+                0 0 60px rgba(138, 43, 226, 0.2),
+                inset 0 0 30px rgba(255, 215, 0, 0.05);
+            transition: opacity 1s ease-in-out;
+        }
+        #messageBox.show {
+            opacity: 1;
+        }
+        #messageBox p {
+            color: #fff;
+            font-size: 24px;
+            line-height: 1.6;
+            margin: 0;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+            letter-spacing: 1px;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="canvas"></canvas>
+    <div id="messageBox">
+        <p id="messageText"></p>
+    </div>
+    <div id="mensaje">Gracias por iluminar mi vida amochito</div>
+    <div id="submensaje"></div>
+    <!-- Audio -->
+    <audio id="backgroundMusic" loop>
+        <source src="music/Photograph.mp3" type="audio/mpeg">
+    </audio>
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const mensaje = document.getElementById('mensaje');
+        const submensaje = document.getElementById('submensaje');
+        const messageBox = document.getElementById('messageBox');
+        const messageText = document.getElementById('messageText');
+        const backgroundMusic = document.getElementById('backgroundMusic');
+        
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        backgroundMusic.volume = 0.5;
+        
+        const messages = [
+            "Hola amochito :3",
+            "Queria decirte unas cositas amor :3",
+            "Primero que te amo con todo mi corazón :c",
+            "Eres la estrella que ilumina mis noches oscuras mi niña :c",
+            "Lo eres todo para mi amochito :3",
+            "Necesito que sepas algo muy importante :c",
+            "Dijiste que solo me gustas por tus fotos :c",
+            "Pero no es ashi amochito :c",
+            "Me encanta ver tu carita esho shi, pero es poque encanta ver tu carita:c",
+            "Me hace sentir cerca de ti :3",
+            "Tus cachetitos me enamoran cada vez que los veo :3",
+            "Tus ojitos pechochos son el lugar en donde quiero perderme :c",
+            "Cada foto tuya es un recordatorio de lo afortunado que soy :3",
+            "No es solo una foto, es la foto de mi esposhita :c",
+            "Como tamos lejitos, esas fotitos me hacen sentir que estás aquí conmigo mi amor :c",
+            "Me encanta verte sonreír aunque sea a través de una pantalla amochito",
+            "Me haces sonreír sin siquiera intentarlo :3",
+            "Cada detalle tuyo, por más pequeño que sea, me enamora :3",
+            "Eres lo mas hermoso que me ha pasado amochito :c",
+            "Me enamoro de ti todos los días un poquito más",
+            "Gracias por existir y por elegirme a mí :c",
+            "Eres mi persona favorita en todo el mundo :3",
+            "Te amo con el alma, mi niña hermosa :c"
+            
+        ];
+        
+        let currentMessageIndex = 0;
+        let messagesComplete = false;
+        let animationStarted = false;
+        
+        class BackgroundStar {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.size = Math.random() * 1.2 + 0.3;
+                this.baseAlpha = Math.random() * 0.6 + 0.4;
+                this.twinkleSpeed = Math.random() * 0.03 + 0.01;
+                this.twinklePhase = Math.random() * Math.PI * 2;
+                this.color = this.getStarColor();
+                this.pulseOffset = Math.random() * 100;
+            }
+            getStarColor() {
+                const rand = Math.random();
+                if (rand < 0.7) return { r: 255, g: 255, b: 255 };
+                else if (rand < 0.85) return { r: 173, g: 216, b: 230 };
+                else if (rand < 0.93) return { r: 255, g: 248, b: 220 };
+                else return { r: 255, g: 200, b: 200 };
+            }
+            update(time) {
+                this.twinklePhase += this.twinkleSpeed;
+            }
+            draw(time) {
+                const twinkle = Math.sin(this.twinklePhase) * 0.4;
+                const alpha = Math.max(0, Math.min(1, this.baseAlpha + twinkle));
+                ctx.shadowBlur = 8;
+                ctx.shadowColor = `rgba(${this.color.r}, ${this.color.g}, ${this.color.b}, ${alpha * 0.8})`;
+                ctx.fillStyle = `rgba(${this.color.r}, ${this.color.g}, ${this.color.b}, ${alpha})`;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+                if (alpha > 0.8 && Math.random() > 0.97) {
+                    ctx.strokeStyle = `rgba(${this.color.r}, ${this.color.g}, ${this.color.b}, ${alpha * 0.5})`;
+                    ctx.lineWidth = 0.5;
+                    ctx.beginPath();
+                    ctx.moveTo(this.x - this.size * 2, this.y);
+                    ctx.lineTo(this.x + this.size * 2, this.y);
+                    ctx.moveTo(this.x, this.y - this.size * 2);
+                    ctx.lineTo(this.x, this.y + this.size * 2);
+                    ctx.stroke();
+                }
+                ctx.shadowBlur = 0;
+            }
+        }
+        
+        class Nebula {
+            constructor() {
+                this.particles = [];
+                for (let i = 0; i < 30; i++) {
+                    this.particles.push({
+                        x: Math.random() * canvas.width,
+                        y: Math.random() * canvas.height,
+                        size: Math.random() * 250 + 150,
+                        speedX: (Math.random() - 0.5) * 0.2,
+                        speedY: (Math.random() - 0.5) * 0.2,
+                        alpha: Math.random() * 0.015 + 0.005,
+                        hue: Math.random() * 40 + 250
+                    });
+                }
+            }
+            update() {
+                this.particles.forEach(p => {
+                    p.x += p.speedX;
+                    p.y += p.speedY;
+                    if (p.x < -p.size) p.x = canvas.width + p.size;
+                    if (p.x > canvas.width + p.size) p.x = -p.size;
+                    if (p.y < -p.size) p.y = canvas.height + p.size;
+                    if (p.y > canvas.height + p.size) p.y = -p.size;
+                });
+            }
+            draw() {
+                this.particles.forEach(p => {
+                    const gradient = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size);
+                    gradient.addColorStop(0, `hsla(${p.hue}, 100%, 50%, ${p.alpha * 1.2})`);
+                    gradient.addColorStop(0.4, `hsla(${p.hue + 15}, 90%, 45%, ${p.alpha * 0.6})`);
+                    gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+                    ctx.fillStyle = gradient;
+                    ctx.fillRect(p.x - p.size, p.y - p.size, p.size * 2, p.size * 2);
+                });
+            }
+        }
+        
+        class FloatingParticle {
+            constructor() {
+                this.reset();
+            }
+            reset() {
+                this.x = Math.random() * canvas.width;
+                this.y = canvas.height + 20;
+                this.size = Math.random() * 2 + 0.5;
+                this.speedY = -(Math.random() * 0.5 + 0.3);
+                this.speedX = (Math.random() - 0.5) * 0.3;
+                this.alpha = Math.random() * 0.5 + 0.3;
+                this.life = 1;
+            }
+            update() {
+                this.y += this.speedY;
+                this.x += this.speedX;
+                this.life -= 0.002;
+                if (this.y < -20 || this.life <= 0) {
+                    this.reset();
+                }
+            }
+            draw() {
+                const alpha = this.alpha * this.life;
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = `rgba(255, 215, 0, ${alpha})`;
+                ctx.fillStyle = `rgba(255, 215, 0, ${alpha})`;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.shadowBlur = 0;
+            }
+        }
+        
+        class FloatingWord {
+            constructor() {
+                this.reset();
+            }
+            reset() {
+                const words = [
+                    "❤️ Te amo ❤️",
+                    "💕 Eres mi todo 💕",
+                    "✨ Mi amor ✨",
+                    "💖 Por siempre 💖",
+                    "🌟 Mi vida 🌟",
+                    "💗 Te adoro 💗",
+                    "⭐ Eres única ⭐",
+                    "💓 Mi tesoro 💓",
+                    "✨ Contigo ✨",
+                    "💝 Mi cielo 💝"
+                ];
+                this.text = words[Math.floor(Math.random() * words.length)];
+                this.x = -200;
+                this.y = Math.random() * (canvas.height - 200) + 100;
+                this.speedX = Math.random() * 0.8 + 0.6;
+                this.speedY = (Math.random() - 0.5) * 0.2;
+                this.alpha = 0;
+                this.fadeIn = true;
+                this.size = Math.random() * 3 + 11;
+                this.color = this.getColor();
+                this.rotation = (Math.random() - 0.5) * 0.02;
+                this.angle = 0;
+                this.glowPhase = Math.random() * Math.PI * 2;
+            }
+            getColor() {
+                const colors = [
+                    { r: 255, g: 150, b: 150 },
+                    { r: 255, g: 180, b: 200 },
+                    { r: 255, g: 200, b: 150 },
+                    { r: 200, g: 150, b: 255 },
+                    { r: 255, g: 220, b: 180 }
+                ];
+                return colors[Math.floor(Math.random() * colors.length)];
+            }
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                this.angle += this.rotation;
+                this.glowPhase += 0.03;
+                if (this.fadeIn) {
+                    this.alpha += 0.01;
+                    if (this.alpha >= 0.8) {
+                        this.fadeIn = false;
+                    }
+                }
+                if (this.x > canvas.width - 200) {
+                    this.alpha -= 0.01;
+                }
+                if (this.x > canvas.width + 200 || this.alpha <= 0) {
+                    this.reset();
+                }
+            }
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate(this.angle);
+                const glow = 0.5 + Math.sin(this.glowPhase) * 0.2;
+                ctx.shadowBlur = 15;
+                ctx.shadowColor = `rgba(${this.color.r}, ${this.color.g}, ${this.color.b}, ${glow})`;
+                ctx.font = `italic bold ${this.size}px Georgia, serif`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillStyle = `rgba(${this.color.r}, ${this.color.g}, ${this.color.b}, ${this.alpha})`;
+                ctx.fillText(this.text, 0, 0);
+                ctx.shadowBlur = 0;
+                ctx.restore();
+            }
+        }
+        
+        class FormingStar {
+            constructor(targetX, targetY, delay) {
+                const angle = Math.random() * Math.PI * 2;
+                const distance = Math.random() * 1000 + 600;
+                this.startX = targetX + Math.cos(angle) * distance;
+                this.startY = targetY + Math.sin(angle) * distance;
+                this.x = this.startX;
+                this.y = this.startY;
+                this.targetX = targetX;
+                this.targetY = targetY;
+                this.size = 0;
+                this.maxSize = 3;
+                this.delay = delay;
+                this.startTime = null;
+                this.forming = false;
+                this.formed = false;
+                this.progress = 0;
+                this.glowPhase = Math.random() * Math.PI * 2;
+                this.trail = [];
+            }
+            update(time) {
+                if (!this.startTime && time >= this.delay) {
+                    this.startTime = time;
+                    this.forming = true;
+                }
+                if (!this.forming || this.formed) {
+                    if (this.formed) {
+                        this.glowPhase += 0.03;
+                    }
+                    return;
+                }
+                const elapsed = time - this.startTime;
+                const duration = 2000;
+                this.progress = Math.min(elapsed / duration, 1);
+                const easeProgress = 1 - Math.pow(1 - this.progress, 3);
+                this.x = this.startX + (this.targetX - this.startX) * easeProgress;
+                this.y = this.startY + (this.targetY - this.startY) * easeProgress;
+                this.size = this.maxSize * Math.min(this.progress * 2, 1);
+                if (this.progress < 0.95) {
+                    this.trail.unshift({ x: this.x, y: this.y, alpha: 1 });
+                    if (this.trail.length > 20) this.trail.pop();
+                    this.trail.forEach((point, i) => {
+                        point.alpha *= 0.95;
+                    });
+                } else {
+                    this.trail = [];
+                }
+                if (this.progress >= 1) {
+                    this.formed = true;
+                    this.x = this.targetX;
+                    this.y = this.targetY;
+                    this.size = this.maxSize;
+                }
+            }
+            draw() {
+                if (!this.forming) return;
+                if (this.trail.length > 0) {
+                    this.trail.forEach((point, i) => {
+                        const trailAlpha = point.alpha * 0.6;
+                        const trailSize = this.size * 0.6 * point.alpha;
+                        ctx.shadowBlur = 8;
+                        ctx.shadowColor = `rgba(255, 255, 255, ${trailAlpha})`;
+                        ctx.fillStyle = `rgba(255, 200, 100, ${trailAlpha})`;
+                        ctx.beginPath();
+                        ctx.arc(point.x, point.y, trailSize, 0, Math.PI * 2);
+                        ctx.fill();
+                    });
+                }
+                const isGolden = this.formed;
+                const baseColor = isGolden ? 
+                    { r: 255, g: 215, b: 0 } : 
+                    { r: 255, g: 240, b: 200 };
+                const pulse = this.formed ? 
+                    0.3 + Math.sin(this.glowPhase) * 0.25 : 
+                    0.6;
+                const glowSize = this.size * 6;
+                const gradient = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, glowSize);
+                gradient.addColorStop(0, `rgba(${baseColor.r}, ${baseColor.g}, ${baseColor.b}, ${pulse})`);
+                gradient.addColorStop(0.2, `rgba(${baseColor.r}, ${baseColor.g}, ${baseColor.b}, ${pulse * 0.6})`);
+                gradient.addColorStop(0.5, `rgba(${baseColor.r}, ${baseColor.g}, ${baseColor.b}, ${pulse * 0.3})`);
+                gradient.addColorStop(1, 'rgba(255, 215, 0, 0)');
+                ctx.fillStyle = gradient;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, glowSize, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.shadowBlur = 20;
+                ctx.shadowColor = `rgba(${baseColor.r}, ${baseColor.g}, ${baseColor.b}, ${pulse * 1.2})`;
+                ctx.fillStyle = `rgba(${baseColor.r}, ${baseColor.g}, ${baseColor.b}, 0.95)`;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size * 2, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.shadowBlur = 12;
+                ctx.fillStyle = isGolden ? '#FFFACD' : '#FFF';
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size * 1.2, 0, Math.PI * 2);
+                ctx.fill();
+                if (this.formed) {
+                    const sparkleIntensity = 0.5 + Math.sin(this.glowPhase) * 0.4;
+                    const sparkleSize = this.size * 5;
+                    ctx.shadowBlur = 18;
+                    ctx.shadowColor = `rgba(255, 215, 0, ${sparkleIntensity})`;
+                    ctx.strokeStyle = `rgba(255, 255, 255, ${sparkleIntensity})`;
+                    ctx.lineWidth = 1.2;
+                    ctx.beginPath();
+                    ctx.moveTo(this.x - sparkleSize, this.y);
+                    ctx.lineTo(this.x + sparkleSize, this.y);
+                    ctx.moveTo(this.x, this.y - sparkleSize);
+                    ctx.lineTo(this.x, this.y + sparkleSize);
+                    const diagonalSize = sparkleSize * 0.7;
+                    ctx.moveTo(this.x - diagonalSize, this.y - diagonalSize);
+                    ctx.lineTo(this.x + diagonalSize, this.y + diagonalSize);
+                    ctx.moveTo(this.x + diagonalSize, this.y - diagonalSize);
+                    ctx.lineTo(this.x - diagonalSize, this.y + diagonalSize);
+                    ctx.stroke();
+                }
+                ctx.shadowBlur = 0;
+            }
+        }
+        
+        const backgroundStars = [];
+        for (let i = 0; i < 300; i++) {
+            backgroundStars.push(new BackgroundStar());
+        }
+        const nebula = new Nebula();
+        const floatingParticles = [];
+        for (let i = 0; i < 30; i++) {
+            floatingParticles.push(new FloatingParticle());
+        }
+        const floatingWords = [];
+        for (let i = 0; i < 4; i++) {
+            const word = new FloatingWord();
+            word.x = Math.random() * canvas.width;
+            floatingWords.push(word);
+        }
+        
+        const letterPatterns = {
+            K: [[0,0],[0,1],[0,2],[0,3],[0,4],[1,2],[2,1],[2,3],[3,0],[3,4]],
+            A: [[0,4],[0,3],[0,2],[0,1],[1,0],[1,2],[2,0],[2,2],[3,1],[3,2],[3,3],[3,4]],
+            R: [[0,0],[0,1],[0,2],[0,3],[0,4],[1,0],[1,2],[2,0],[2,2],[3,1],[3,3],[3,4]],
+            U: [[0,0],[0,1],[0,2],[0,3],[1,4],[2,4],[3,0],[3,1],[3,2],[3,3]],
+            M: [[0,0],[0,1],[0,2],[0,3],[0,4],[1,1],[2,2],[3,1],[4,0],[4,1],[4,2],[4,3],[4,4]],
+            Y: [[0,0],[0,1],[1,2],[2,2],[2,3],[2,4],[3,2],[4,0],[4,1]]
+        };
+        
+        const formingStars = [];
+        const scale = 22;
+        const letterWidths = { K: 4, A: 4, R: 4, U: 4, M: 5, Y: 5 };
+        const spacing = 1.5;
+        let totalWidth = 0;
+        Object.keys(letterPatterns).forEach(letter => {
+            totalWidth += letterWidths[letter] + spacing;
+        });
+        totalWidth = (totalWidth - spacing) * scale;
+        const startX = (canvas.width - totalWidth) / 2;
+        const startY = canvas.height / 2 - 50;
+        let letterOffset = 0;
+        let delay = 0;
+        Object.keys(letterPatterns).forEach(letter => {
+            letterPatterns[letter].forEach(([x, y]) => {
+                const star = new FormingStar(
+                    startX + (letterOffset + x) * scale,
+                    startY + y * scale,
+                    delay
+                );
+                formingStars.push(star);
+                delay += 12;
+            });
+            letterOffset += letterWidths[letter] + spacing;
+        });
+        
+        let startTime = null;
+        let lastTime = 0;
+        let messageShown = false;
+        
+        function showMessages() {
+            if (currentMessageIndex < messages.length) {
+                messageText.textContent = messages[currentMessageIndex];
+                messageBox.classList.add('show');
+                setTimeout(() => {
+                    messageBox.classList.remove('show');
+                    setTimeout(() => {
+                        currentMessageIndex++;
+                        showMessages();
+                    }, 1000);
+                }, 5000);
+            } else {
+                messagesComplete = true;
+                messageBox.style.display = 'none';
+                startTime = Date.now();
+            }
+        }
+        
+        setTimeout(() => {
+            showMessages();
+            backgroundMusic.play().catch(error => {
+                console.log('La música se reproducirá después de la interacción del usuario');
+                document.addEventListener('click', () => {
+                    backgroundMusic.play();
+                }, { once: true });
+            });
+        }, 1000);
+        
+        function animate() {
+            const currentTime = Date.now();
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.15)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            nebula.update();
+            nebula.draw();
+            backgroundStars.forEach(star => {
+                star.update(currentTime);
+                star.draw(currentTime);
+            });
+            floatingParticles.forEach(particle => {
+                particle.update();
+                particle.draw();
+            });
+            floatingWords.forEach(word => {
+                word.update();
+                word.draw();
+            });
+            if (messagesComplete) {
+                if (!startTime) startTime = currentTime;
+                const elapsed = currentTime - startTime;
+                let allFormed = true;
+                let formedCount = 0;
+                formingStars.forEach(star => {
+                    star.update(elapsed);
+                    star.draw();
+                    if (star.formed) {
+                        formedCount++;
+                    } else {
+                        allFormed = false;
+                    }
+                });
+                if (allFormed && !messageShown) {
+                    console.log('Todas las estrellas formadas:', formedCount, '/', formingStars.length);
+                    messageShown = true;
+                    mensaje.style.opacity = '1';
+                }
+            }
+            requestAnimationFrame(animate);
+        }
+        animate();
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+    </script>
+</body>
+</html>
